@@ -52,8 +52,8 @@ Stops (and optionally removes) the container.
 ## Setup
 
 1.  **Prerequisites**:
-    -   Docker Desktop installed and running
-    -   .NET 9.0 SDK or later
+    -   **Docker Desktop** (or Docker Engine) installed and **running**.
+    -   .NET 9.0 SDK or later.
     
     **Verify your environment**:
     ```bash
@@ -65,11 +65,13 @@ Stops (and optionally removes) the container.
     ```
 
 2.  **Build the Server Image**:
+    This step is critical. You must build the image before running any clients.
     ```bash
     docker build -t kali-mcp-gemini .
     ```
 
 3.  **Pull Kali Image**:
+    Pre-pulling the image ensures the first run is faster and avoids timeouts.
     ```bash
     docker pull kalilinux/kali-rolling
     ```
@@ -109,6 +111,12 @@ Choose the appropriate method based on your use case:
 **Best for**: Production use with Gemini AI agents
 
 The server is automatically discovered by the Gemini CLI using the configuration in `.gemini/settings.json`. 
+
+**Configuration Note**:
+The `.gemini/settings.json` file is pre-configured with necessary flags:
+- `--privileged`: Required for Docker-in-Docker.
+- `--network host`: Required for proper networking inside the nested container.
+- `-v kali_mcp_data:/var/lib/docker`: Persists the internal Docker state (images and containers) so your Kali environment survives between sessions.
 
 **Requirements**:
 - Docker image must be built first (`docker build -t kali-mcp-gemini .`)
@@ -177,6 +185,13 @@ When running via the Gemini CLI, the agent can call these tools directly to inte
 - Ensure you're running the container with `--privileged` flag (already in `.gemini/settings.json` and `.vscode/mcp.json`)
 - Verify Docker Desktop is running on the host machine
 - Check container logs: `docker logs <container-name>`
+- **Nested Overlayfs**: If you see storage driver errors, the `entrypoint.sh` is configured to use `vfs` driver which resolves issues with nested overlay filesystems.
+
+### Network/DNS Issues in Kali Container
+**Cause**: The nested container cannot resolve domains (e.g., during `apt-get update` or `docker pull`).
+
+**Solutions**:
+- Ensure the MCP server container is running with `--network host`. This is configured in `.gemini/settings.json`.
 
 ### KaliClient error: "Settings file not found"
 **Cause**: Can't locate `.gemini/settings.json`.

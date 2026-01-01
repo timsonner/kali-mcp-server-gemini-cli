@@ -39,5 +39,8 @@ COPY --from=publish /app/publish .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
+# Default Kali image to use
+ENV KALI_IMAGE=kalilinux/kali-rolling
+
 # Set the entry point to our script
 ENTRYPOINT ["./entrypoint.sh"]

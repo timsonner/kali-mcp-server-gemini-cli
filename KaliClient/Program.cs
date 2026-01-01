@@ -110,16 +110,24 @@ class Program
 
             if (responseJson != null)
             {
-                using var responseDoc = JsonDocument.Parse(responseJson);
-                if (responseDoc.RootElement.TryGetProperty("result", out var result) &&
-                    result.TryGetProperty("content", out var content) &&
-                    content.GetArrayLength() > 0)
+                // Debug: Print raw response if parsing fails
+                try 
                 {
-                    Console.WriteLine(content[0].GetProperty("text").GetString());
+                    using var responseDoc = JsonDocument.Parse(responseJson);
+                    if (responseDoc.RootElement.TryGetProperty("result", out var result) &&
+                        result.TryGetProperty("content", out var content) &&
+                        content.GetArrayLength() > 0)
+                    {
+                        Console.WriteLine(content[0].GetProperty("text").GetString());
+                    }
+                    else
+                    {
+                        Console.WriteLine(responseJson);
+                    }
                 }
-                else
+                catch (JsonException)
                 {
-                    Console.WriteLine(responseJson);
+                    Console.WriteLine($"Failed to parse JSON response: {responseJson}");
                 }
             }
         }

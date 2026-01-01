@@ -7,6 +7,10 @@
         "--rm",
         "-i",
         "--privileged",
+        "--network",
+        "host",
+        "-v",
+        "kali_mcp_data:/var/lib/docker",
         "kali-mcp-gemini"
       ],
       "trust": true

@@ -8,7 +8,7 @@ namespace KaliMCPGemini.Tools;
 [McpServerToolType]
 public static class KaliLinuxToolset
 {
-    private const string DefaultImage = "kalilinux/kali-rolling";
+    private static string DefaultImage => Environment.GetEnvironmentVariable("KALI_IMAGE") ?? "kalilinux/kali-rolling";
     private const string DefaultContainerName = "kali-mcp-gemini-persistent";
     private static readonly object _lockObject = new object();
     private static readonly SemaphoreSlim _containerSemaphore = new SemaphoreSlim(1, 1);
@@ -270,6 +270,7 @@ public static class KaliLinuxToolset
     {
         var psi = new ProcessStartInfo("docker")
         {
+            RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
@@ -298,6 +299,7 @@ public static class KaliLinuxToolset
         // Stop the container
         var stopPsi = new ProcessStartInfo("docker")
         {
+            RedirectStandardOutput = true,
             UseShellExecute = false,
             CreateNoWindow = true,
         };
@@ -320,6 +322,7 @@ public static class KaliLinuxToolset
     {
         var rmPsi = new ProcessStartInfo("docker")
         {
+            RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
