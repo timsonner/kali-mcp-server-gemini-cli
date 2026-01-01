@@ -19,18 +19,25 @@ RUN dotnet publish "KaliMCPGemini.csproj" -c Release -o /app/publish /p:UseAppHo
 FROM mcr.microsoft.com/dotnet/runtime:9.0 AS final
 WORKDIR /app
 
-# Install Docker CLI so the MCP server can interact with the host Docker daemon
-ARG DOCKER_CLI_VERSION=27.1.1
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl tar \
+# Install Docker Engine (DinD)
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release \
+    procps \
+    && mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io \
     && rm -rf /var/lib/apt/lists/*
-
-RUN curl -fsSL "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_CLI_VERSION}.tgz" -o docker.tgz \
-    && tar -xzf docker.tgz --strip-components=1 -C /usr/local/bin docker/docker \
-    && rm -rf docker docker.tgz
 
 # Copy the published application
 COPY --from=publish /app/publish .
 
-# Set the entry point
-ENTRYPOINT ["dotnet", "KaliMCPGemini.dll"]
+# Copy and set the entrypoint script
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+# Set the entry point to our script
+ENTRYPOINT ["./entrypoint.sh"]

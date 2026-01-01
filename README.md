@@ -9,10 +9,17 @@ A .NET-based [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) se
 - **`Dockerfile`**: Builds the server image (`kali-mcp-gemini`).
 - **`.gemini/settings.json`**: Configuration source for launching the server.
 
-## Architecture: Docker-out-of-Docker (DooD)
+## Architecture: Docker-in-Docker (DinD)
 
-This project uses **Docker-out-of-Docker (DooD)**. 
-The MCP server container binds the host's Docker socket (`/var/run/docker.sock`). This allows the server to spawn and manage a *sibling* container (`kali-mcp-gemini-persistent`) which runs the actual Kali Linux tools.
+This project uses **Docker-in-Docker (DinD)** for enhanced security and isolation.
+The MCP server container runs with the `--privileged` flag and hosts its own internal Docker daemon. This ensures that the Kali Linux environment and any commands executed within it are isolated from the host machine's Docker daemon and file system.
+
+### Key Benefits:
+- **Isolation**: Compromise of the Kali container does not provide access to the host Docker daemon.
+- **Clean Slate**: Each server instance starts with a fresh Docker environment.
+
+### Requirements:
+- The server container **must** be run with the `--privileged` flag to allow the internal Docker daemon to function.
 
 ## Available Tools
 
