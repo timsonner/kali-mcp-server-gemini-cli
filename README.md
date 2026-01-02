@@ -223,6 +223,9 @@ The following prompts were used to conduct the assessment:
 4.  **Timeouts**
     > make sure to use timeouts so you're not getting stuck waiting for socket responses
 
+5.  **Reports**
+    > review the context of your usage of kali-exec. We should update the vulnerability report with all commands and scripts used.
+
 #### 3. View Results
 See the generated report: **[Pyrat_Vulnerability_Report.md](Pyrat_Vulnerability_Report.md)**
 
