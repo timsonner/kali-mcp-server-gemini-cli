@@ -245,6 +245,10 @@ public static class KaliLinuxToolset
         psi.ArgumentList.Add(containerName);
         psi.ArgumentList.Add("--network");
         psi.ArgumentList.Add("host");
+        psi.ArgumentList.Add("--cap-add");
+        psi.ArgumentList.Add("NET_ADMIN");
+        psi.ArgumentList.Add("--device");
+        psi.ArgumentList.Add("/dev/net/tun");
         psi.ArgumentList.Add("--workdir");
         psi.ArgumentList.Add("/root");
         // Add minimal capabilities or args if needed, but keeping simple for now.

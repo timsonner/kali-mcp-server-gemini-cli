@@ -199,6 +199,42 @@ The following prompts were used with the Kali MCP agent to generate the report:
 ### 3. View Results
 See the generated report: **[Vulnerability_Report.md](Vulnerability_Report.md)**
 
+## Connect container to VPN
+
+The Kali container supports VPN connections (e.g., OpenVPN) using Host Networking and `NET_ADMIN` capabilities.
+
+**1. Rebuild and Restart**
+Ensure the container is running with the latest network flags:
+```bash
+# Rebuild the MCP server image
+docker build -t kali-mcp-gemini .
+
+# Restart the container (applies new flags)
+dotnet run --project KaliClient -- kali-container-restart
+```
+
+**2. Copy VPN Configuration**
+Copy your `.ovpn` file from the host to the container:
+```bash
+docker cp ~/path/to/your.ovpn kali-mcp-gemini-persistent:/root/vpn.ovpn
+```
+
+**3. Install Tools & Connect**
+Install OpenVPN and start the connection in a background screen session:
+```bash
+# Install tools
+dotnet run --project KaliClient -- "apt-get update && apt-get install -y openvpn screen iputils-ping iproute2 net-tools"
+
+# Start VPN
+dotnet run --project KaliClient -- "screen -dmS vpn openvpn --config /root/vpn.ovpn"
+```
+
+**4. Verify Connection**
+Check the `tun0` interface:
+```bash
+dotnet run --project KaliClient -- "ip addr show tun0"
+```
+
 ## Troubleshooting
 
 **Docker daemon failed**: Verify `--privileged` flag in config, Docker Desktop running, check logs
