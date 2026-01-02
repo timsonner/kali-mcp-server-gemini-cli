@@ -342,6 +342,9 @@ If you need to interact with the nested Kali container directly from your host t
 
 **1. Find the MCP Server Container**
 ```bash
+# List all containers to see what's running
+docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+
 # Get the MCP server container name (changes each restart)
 docker ps --filter ancestor=kali-mcp --format "{{.Names}}"
 # Example output: quizzical_volhard
@@ -349,7 +352,10 @@ docker ps --filter ancestor=kali-mcp --format "{{.Names}}"
 
 **2. Copy VPN Config (Host → MCP Server → Kali)**
 ```bash
-# Copy to MCP server container first, then to nested Kali container
+# Copy to MCP server container using container name
+docker cp ~/Downloads/your-vpn.ovpn keen_mcclintock:/tmp/vpn.ovpn
+
+# Or copy using filter (if only one kali-mcp container is running)
 docker cp ~/Downloads/your-vpn.ovpn $(docker ps -q --filter ancestor=kali-mcp):/tmp/vpn.ovpn
 
 docker exec $(docker ps -q --filter ancestor=kali-mcp) \
