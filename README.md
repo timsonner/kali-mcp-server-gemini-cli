@@ -173,9 +173,11 @@ export GEMINI_SETTINGS_PATH="/path/to/settings.json"
 
 ## Replicating Vulnerability Assessments
 
-This repository includes a sample vulnerability assessment workflow against a vulnerable target (DVWA).
+This repository includes sample vulnerability assessment workflows.
 
-### 1. Target Setup (DVWA)
+### Example 1: DVWA (Local Docker)
+
+#### 1. Target Setup
 To replicate the findings in [Vulnerability_Report.md](Vulnerability_Report.md), start a DVWA container on your host machine:
 
 ```bash
@@ -184,7 +186,7 @@ docker run --rm -it -p 8080:80 vulnerables/web-dvwa
 
 *Note: To access the DVWA container on `localhost`, ensure the MCP server is running with Host Networking enabled (default in provided configuration). Otherwise, use your host's IP address (e.g., `host.docker.internal` on Docker Desktop).*
 
-### 2. Session Workflow
+#### 2. Session Workflow
 The following prompts were used with the Kali MCP agent to generate the report:
 
 1.  **Environment Prep**:
@@ -196,8 +198,33 @@ The following prompts were used with the Kali MCP agent to generate the report:
 3.  **Reporting**:
     > "Generate a comprehensive markdown report (Vulnerability_Report.md) summarizing the findings, including severity, evidence, and remediation steps."
 
-### 3. View Results
+#### 3. View Results
 See the generated report: **[Vulnerability_Report.md](Vulnerability_Report.md)**
+
+### Example 2: Pyrat (TryHackMe)
+
+#### 1. Target Setup
+Deploy the [Pyrat](https://tryhackme.com/r/room/pyrat) room on TryHackMe and note the target IP. Ensure you have your OpenVPN configuration file ready.
+
+#### 2. Session Workflow
+The following prompts were used to conduct the assessment:
+
+1.  **VPN Connection**:
+    > "copy the .ovpn file from my downloads folder and start the vpn"
+
+2.  **Assessment & Exploitation**:
+    > run vulnerability assesment against this host. its a tryhackme room. here is the hint "Pyrat receives a curious response from an HTTP server, which leads to a potential Python code execution vulnerability. With a cleverly crafted payload, it is possible to gain a shell on the machine. Delving into the directories, the author uncovers a well-known folder that provides a user with access to credentials. A subsequent exploration yields valuable insights into the application's older version. Exploring possible endpoints using a custom script, the user can discover a special endpoint and ingeniously expand their exploration by fuzzing passwords. The script unveils a password, ultimately granting access to the root."
+
+    > "focus on manual enumeration", and "keep playing with the custom app" install tools as needed, see if you can find the flags on <target IP> using kali-exec. make sure to keep track of commands and techniques used as we'll generate a report if vulneravilities are found.
+
+3.  **MCP Tool**    
+    > "make sure to use the mcp tool kali-exec for enumeration and testing.
+
+4.  **Timeouts**
+    > make sure to use timeouts so you're not getting stuck waiting for socket responses
+
+#### 3. View Results
+See the generated report: **[Pyrat_Vulnerability_Report.md](Pyrat_Vulnerability_Report.md)**
 
 ## Connect container to VPN
 
