@@ -1,17 +1,10 @@
 {
     "servers": {
         "VS-Code-Kali-MCP-Server": {
-            "command": "docker",
+            "command": "bash",
             "args": [
-                "run",
-                "--rm",
-                "-i",
-                "--privileged",
-                "--network",
-                "host",
-                "-v",
-                "kali_mcp_data:/var/lib/docker",
-                "kali-mcp"
+                "-c",
+                "CONTAINER_ID=$(docker ps -q --filter ancestor=kali-mcp 2>/dev/null | head -1); if [ -n \"$CONTAINER_ID\" ]; then exec docker exec -i \"$CONTAINER_ID\" dotnet KaliMCP.dll; else exec docker run --rm -i --privileged --network host -v kali_mcp_data:/var/lib/docker kali-mcp; fi"
             ],
             "type": "stdio"
         }
