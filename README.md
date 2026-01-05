@@ -140,32 +140,24 @@ Four MCP protocol tools for container management and command execution:
 
 ```bash
 # Verify environment
-dotnet --version  # Should be 9.0+
-docker ps         # Should succeed
-
-# Build MCP server image
-docker build -t kali-mcp .
-
-# Pull Kali image
-docker pull kalilinux/kali-rolling
-```
-
-## Quick Start
-
-After cloning the repository, verify everything works:
-
-```bash
-# 1. Verify prerequisites
 dotnet --version  # Should be 9.0.0 or higher
 docker ps         # Should succeed without errors
 
-# 2. Build the Docker image
-docker build -t kali-mcp .
-
-# 3. Pull the Kali Linux image
+# Pull Kali image
 docker pull kalilinux/kali-rolling
 
-# 4. Test with KaliClient (ensure you're in the project root)
+# Build MCP server image
+docker build --network host -t kali-mcp .
+
+# Check status of Kali MCP server
+docker ps --filter ancestor=kali-mcp --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+# Expected output should show:
+# NAMES              STATUS          PORTS
+# priceless_keller   Up 16 minutes
+
+# Note: The nested kali-mcp-container will auto-create when you run your first command
+
+# Test with KaliClient (ensure you're in the project root)
 dotnet run --project KaliClient -- "echo 'Hello from Kali'"
 
 # Expected output should show:
@@ -180,13 +172,31 @@ dotnet run --project KaliClient -- "echo 'Hello from Kali'"
 
 ⚠️ **Minimal Base Image**: `kalilinux/kali-rolling` does not include most security tools (nmap, metasploit, nikto, etc.). You must install them first.
 
+**Option 1: Install on-demand via MCP tools**
 ```bash
 apt-get update
 apt-get install -y nmap iputils-ping netcat-traditional dnsutils
 apt-get install -y metasploit-framework nikto sqlmap wpscan
 ```
 
-✅ **Persistence**: Installed tools persist across restarts via Docker volume mount (`-v kali_mcp_data:/var/lib/docker` in `.gemini/settings.json`). This volume stores the internal Docker daemon's state, including all container filesystems and installed packages. Install once, use forever.
+**Option 2: Auto-install via Dockerfile**
+
+For automatic tool installation, modify the `Dockerfile` to pre-install tools in the Kali container. Add these lines before the `ENTRYPOINT`:
+
+```dockerfile
+# Pre-pull Kali image and pre-install tools
+RUN docker pull kalilinux/kali-rolling && \
+    docker run --name kali-setup kalilinux/kali-rolling bash -c \
+    "apt-get update && apt-get install -y nmap iputils-ping netcat-traditional dnsutils nikto sqlmap" && \
+    docker commit kali-setup kalilinux/kali-rolling:custom && \
+    docker rm kali-setup
+
+ENV KALI_IMAGE=kalilinux/kali-rolling:custom
+```
+
+Then rebuild: `docker build --network host -t kali-mcp .`
+
+**Persistence**: Installed tools persist across restarts via Docker volume mount (`-v kali_mcp_data:/var/lib/docker` in `.gemini/settings.json`). This volume stores the internal Docker daemon's state, including all container filesystems and installed packages. Install once, use forever.
 
 ## Running the Server
 
@@ -352,14 +362,15 @@ docker ps --filter ancestor=kali-mcp --format "{{.Names}}"
 
 **2. Copy VPN Config (Host → MCP Server → Kali)**
 ```bash
-# Copy to MCP server container using container name
-docker cp ~/Downloads/your-vpn.ovpn keen_mcclintock:/tmp/vpn.ovpn
+# Copy from host to MCP server container
+docker cp ~/Downloads/your-vpn.ovpn $(docker ps -q --filter ancestor=kali-mcp):/root/vpn.ovpn
 
-# Or copy using filter (if only one kali-mcp container is running)
-docker cp ~/Downloads/your-vpn.ovpn $(docker ps -q --filter ancestor=kali-mcp):/tmp/vpn.ovpn
-
+# Copy from MCP server to nested Kali container
 docker exec $(docker ps -q --filter ancestor=kali-mcp) \
-  docker cp /tmp/vpn.ovpn kali-mcp-container:/root/vpn.ovpn
+  docker cp /root/vpn.ovpn kali-mcp-container:/root/vpn.ovpn
+
+# Clean up intermediate file (optional)
+docker exec $(docker ps -q --filter ancestor=kali-mcp) rm /root/vpn.ovpn
 ```
 
 **3. Install OpenVPN in Nested Container**
