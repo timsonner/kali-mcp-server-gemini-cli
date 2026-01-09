@@ -169,11 +169,39 @@ dotnet run --project KaliClient -- "echo 'Hello from Kali'"
 
 ⚠️ **Minimal Base Image**: `kalilinux/kali-rolling` does not include most security tools (nmap, metasploit, nikto, etc.). You must install them first.
 
-**Option 1: Install on-demand via MCP tools**
+**Option 1: Install all recommended tools at once**
+### Recommended Tools
+
+**Networking & Connectivity:**
+- `openvpn` - VPN connection
+- `iproute2` - `ip` command for network configuration
+- `iputils-ping` - `ping` command
+- `netcat-traditional` - Listeners and banner grabbing
+- `tcpdump` - Packet capture
+
+**Reconnaissance & Scanning:**
+- `nmap` - Port scanning
+- `gobuster` - Directory/subdomain discovery
+- `nikto` - Web vulnerability scanner
+- `whatweb` - Web technology identification
+- `dirb` - Directory brute-forcing
+
+**Exploitation & Tools:**
+- `exploitdb` - Contains `searchsploit`
+- `hydra` - Login brute-forcing
+- `sshpass` - Non-interactive SSH authentication
+- `curl` - HTTP requests
+- `python3-requests` - Python HTTP library
+- `xxd` - Hex dump and reverse hex
+- `zip` - Archive management
+
+**Utilities & Wordlists:**
+- `wordlists` - Includes `rockyou.txt`
+
+### Installation
+
 ```bash
-apt-get update
-apt-get install -y nmap iputils-ping netcat-traditional dnsutils
-apt-get install -y metasploit-framework nikto sqlmap wpscan
+apt-get update && apt-get install -y openvpn iproute2 iputils-ping netcat-traditional tcpdump nmap gobuster nikto whatweb dirb exploitdb hydra sshpass curl python3-requests xxd zip wordlists metasploit-framework sqlmap wpscan dnsutils
 ```
 
 **Option 2: Auto-install via Dockerfile**

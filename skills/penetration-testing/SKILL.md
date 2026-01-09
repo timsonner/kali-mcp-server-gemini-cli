@@ -21,6 +21,7 @@ This skill guides AI agents through professional penetration testing workflows u
 3. **Install tools first** - Never assume tools are pre-installed in the container
 4. **Be methodical** - Follow a structured testing methodology
 5. **Generate reports** - Always conclude with comprehensive vulnerability documentation
+6. **Understand before exploiting** - NEVER deploy an exploit without first researching and understanding exactly how it works, what it does, and what the risks are
 
 ## Prerequisites
 
@@ -157,12 +158,55 @@ kali-exec "timeout 300s wpscan --url http://[TARGET_IP] --enumerate u,p"
 
 **Objective**: Gain initial access to the target system.
 
+> ⚠️ **CRITICAL: Exploit Research Requirement**
+> Before attempting ANY exploit, you MUST thoroughly research and understand it. Never deploy an exploit blindly.
+
 **Essential Steps**:
 
-1. **Exploit Preparation**:
+1. **Exploit Research (MANDATORY)**:
+
+Before using any exploit, complete this research checklist:
+
+- [ ] **Identify the CVE/Exploit-DB ID**: Know the exact vulnerability being exploited
+- [ ] **Understand the vulnerability class**: What type of bug is it? (Buffer overflow, RCE, SQLi, deserialization, etc.)
+- [ ] **Read the technical details**: Understand HOW the exploit works at a technical level
+- [ ] **Verify target compatibility**: Confirm the target version/configuration is vulnerable
+- [ ] **Understand the payload**: Know exactly what code will execute and its effects
+- [ ] **Identify prerequisites**: What conditions must exist for successful exploitation?
+- [ ] **Know the indicators**: What artifacts/logs will be created?
+- [ ] **Plan for failure**: What happens if the exploit fails? Will it crash the service?
+
+**Research Commands**:
+```bash
+# Search for exploit details
+kali-exec "searchsploit -x [EXPLOIT_ID]"  # Read the exploit code and comments
+
+# Research CVE details
+kali-exec "curl -s 'https://cveawg.mitre.org/api/cve/CVE-XXXX-XXXX' | jq ."
+
+# Check exploit-db for writeups and details
+kali-exec "searchsploit -w [EXPLOIT_ID]"  # Get Exploit-DB URL for full details
+
+# Read exploit source code to understand mechanism
+kali-exec "searchsploit -m [EXPLOIT_ID] && cat [EXPLOIT_FILE] | head -100"
+```
+
+**Document Your Understanding**:
+Before proceeding, log in `pentest_log.md`:
+- Exploit name and ID (CVE/EDB)
+- Vulnerability type and root cause
+- How the exploit achieves code execution
+- Expected behavior on success/failure
+- Any modifications needed for target environment
+
+2. **Exploit Preparation**:
 ```bash
 # Download exploit if needed
 kali-exec "wget -T 30 [EXPLOIT_URL] -O exploit.py"
+
+# ALWAYS review exploit code before execution
+kali-exec "cat exploit.py | head -50"  # Check exploit header/comments
+kali-exec "grep -n 'payload\|shell\|cmd\|exec' exploit.py"  # Identify payload sections
 
 # Make executable
 kali-exec "chmod +x exploit.py"
@@ -416,6 +460,13 @@ For each vulnerability discovered, include:
    - Complete enumeration before attacking
    - Try multiple approaches
    - Don't fixate on one attack vector
+
+5. **Blind Exploitation**: NEVER run an exploit without understanding it
+   - ❌ Download exploit and run immediately
+   - ✅ Research CVE, read exploit code, understand mechanism, then execute
+   - Always know: What vulnerability? How does it work? What does the payload do?
+   - Read exploit source code comments and documentation first
+   - Verify target version matches exploit requirements
 
 ## Advanced Techniques
 
